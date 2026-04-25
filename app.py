@@ -3,100 +3,110 @@ import pandas as pd
 import pickle
 import numpy as np
 
-# Page configuration for a professional look
+# Page configuration
 st.set_page_config(
-    page_title="Academic Performance AI",
+    page_title="Student Success AI",
     page_icon="🎓",
     layout="wide"
 )
 
-# Custom CSS for styling
+# Professional Styling
 st.markdown("""
     <style>
-    .main {
-        background-color: #f5f7f9;
-    }
+    .main { background-color: #f8f9fa; }
     .stButton>button {
         width: 100%;
-        border-radius: 5px;
-        height: 3em;
-        background-color: #007bff;
+        background-color: #2e59a8;
         color: white;
-        font-weight: bold;
+        height: 3em;
+        border-radius: 8px;
     }
-    .prediction-box {
-        padding: 20px;
-        border-radius: 10px;
+    .result-card {
+        padding: 25px;
+        border-radius: 15px;
         text-align: center;
-        font-size: 24px;
-        font-weight: bold;
+        font-size: 22px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
     </style>
     """, unsafe_allow_html=True)
 
-# Load the model
+# Load the model securely
 @st.cache_resource
 def load_model():
     with open('model.pkl', 'rb') as file:
-        model = pickle.load(file)
-    return model
+        return pickle.load(file)
 
-model = load_model()
+try:
+    model = load_model()
+except Exception as e:
+    st.error(f"Error loading model: {e}")
 
-# Header Section
-st.markdown("<h1 style='text-align: center; color: #1e3d59;'>🎓 Student Success Analytics</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #555;'>Predict academic outcomes using Machine Learning</p>", unsafe_allow_html=True)
+# Sidebar - Instructions
+with st.sidebar:
+    st.image("https://cdn-icons-png.flaticon.com/512/3413/3413535.png", width=100)
+    st.title("About the Tool")
+    st.info("""
+    This AI model analyzes student demographics, study habits, and previous grades to predict final academic success.
+    
+    **Features used:**
+    - Attendance Rate
+    - Study Hours
+    - Previous Performance
+    """)
+
+# Header
+st.markdown("<h1 style='text-align: center;'>🎓 Student Performance Analytics</h1>", unsafe_allow_html=True)
 st.divider()
 
 # Input Form
-with st.container():
-    st.subheader("📊 Student Profile Information")
+with st.form("prediction_form"):
+    st.subheader("📝 Student Details")
     
-    # Organize inputs into three clean columns
-    col1, col2, col3 = st.columns(3)
+    c1, c2, c3 = st.columns(3)
+    
+    with c1:
+        gender = st.selectbox("Gender", ["No", "Yes"])
+        age = st.number_input("Age", 10, 50, 20)
+        parent_edu = st.selectbox("Parent Education Level", [0, 1, 2, 3])
 
-    with col1:
-        gender = st.selectbox("Gender", ["No", "Yes"], help="Is the student Male (Yes) or Female (No)?") [cite: 1]
-        age = st.number_input("Age", min_value=10, max_value=100, value=20) [cite: 1]
-        parent_edu = st.selectbox("Parent Education Level", [0, 1, 2, 3], help="Higher values indicate higher education levels.") [cite: 1]
+    with c2:
+        attendance = st.slider("Attendance Rate (%)", 0, 100, 85)
+        study_hours = st.number_input("Weekly Study Hours", 0, 168, 15)
+        internet = st.selectbox("Internet Access", ["No", "Yes"])
 
-    with col2:
-        attendance = st.slider("Attendance Rate (%)", 0, 100, 85) [cite: 1]
-        study_hours = st.number_input("Weekly Study Hours", min_value=0, max_value=168, value=15) [cite: 1]
-        internet = st.selectbox("Has Internet Access?", ["No", "Yes"]) [cite: 1]
+    with c3:
+        extracurricular = st.selectbox("Extracurriculars", ["No", "Yes"])
+        prev_score = st.number_input("Previous Score", 0, 100, 70)
+        final_score_input = st.number_input("Current Score", 0, 100, 75)
 
-    with col3:
-        extracurricular = st.selectbox("Extracurricular Activities", ["No", "Yes"]) [cite: 1]
-        prev_score = st.number_input("Previous Grade Score", min_value=0, max_value=100, value=70) [cite: 1]
-        final_score = st.number_input("Recent Exam Score", min_value=0, max_value=100, value=75) [cite: 1]
+    submit = st.form_submit_button("Run AI Prediction")
 
-# Prediction Action
-st.markdown("---")
-if st.button("Generate Performance Analysis"):
-    # Prepare data for prediction
-    input_data = pd.DataFrame({
+# Processing Prediction
+if submit:
+    # Ensure all inputs are converted to the correct numeric format for the model 
+    data = {
         'gender': [1 if gender == "Yes" else 0],
-        'age': [age],
-        'study_hours_per_week': [study_hours],
-        'attendance_rate': [attendance],
-        'parent_education': [parent_edu],
+        'age': [float(age)],
+        'study_hours_per_week': [float(study_hours)],
+        'attendance_rate': [float(attendance)],
+        'parent_education': [float(parent_edu)],
         'internet_access': [1 if internet == "Yes" else 0],
         'extracurricular': [1 if extracurricular == "Yes" else 0],
-        'previous_score': [prev_score],
-        'final_score': [final_score]
-    }) [cite: 1]
-
-    prediction = model.predict(input_data) [cite: 1]
+        'previous_score': [float(prev_score)],
+        'final_score': [float(final_score_input)]
+    }
     
-    # Attractive Prediction Display
-    st.subheader("🎯 Prediction Result")
-    if prediction[0] == "Yes": [cite: 1]
+    input_df = pd.DataFrame(data)
+    
+    # Make Prediction
+    prediction = model.predict(input_df)
+    
+    st.markdown("---")
+    if prediction[0] == "Yes":
         st.balloons()
-        st.markdown("""<div class='prediction-box' style='background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb;'>
-                    🚀 The student is predicted to PASS successfully!</div>""", unsafe_allow_html=True)
+        st.markdown("""<div class='result-card' style='background-color: #e1f5fe; color: #01579b;'>
+                    ✅ <b>Prediction: SUCCESS</b><br>The student is likely to pass the academic term.</div>""", unsafe_allow_html=True)
     else:
-        st.markdown("""<div class='prediction-box' style='background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;'>
-                    ⚠️ The student is at risk. Academic intervention suggested.</div>""", unsafe_allow_html=True)
-
-# Footer
-st.markdown("<br><hr><center>Developed for AI/ML Portfolio | Pune, Maharashtra</center>", unsafe_allow_html=True)
+        st.markdown("""<div class='result-card' style='background-color: #ffebee; color: #b71c1c;'>
+                    ❌ <b>Prediction: AT RISK</b><br>Additional academic support is recommended.</div>""", unsafe_allow_html=True)
