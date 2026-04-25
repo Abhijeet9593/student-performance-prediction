@@ -47,9 +47,8 @@ input_data = pd.DataFrame({
 if st.button("Predict Outcome"):
     prediction = model.predict(input_data)
     
-    if prediction[0] == "Yes": [cite: 2]
+    # Remove any [cite: 2] text from this line
+    if prediction[0] == "Yes":
         st.success("🎉 Prediction: The student is likely to SUCCEED.")
     else:
         st.error("⚠️ Prediction: The student is at risk of FAILING.")
-
-st.info("Features analyzed: " + ", ".join(input_data.columns)) [cite: 2]
