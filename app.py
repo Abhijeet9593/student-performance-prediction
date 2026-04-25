@@ -14,19 +14,19 @@ model = load_model()
 st.title("🎓 Student Performance Predictor")
 st.write("Enter the details below to predict if a student will pass.")
 
-# Create input fields based on your model's features 
+# Create input fields based on your model's features
 col1, col2 = st.columns(2)
 
 with col1:
-    gender = st.selectbox("Gender", ["No", "Yes"]) # Encoded as No/Yes in model 
+    gender = st.selectbox("Gender", ["No", "Yes"])
     age = st.number_input("Age", min_value=10, max_value=100, value=20)
     study_hours = st.number_input("Study Hours per Week", min_value=0, max_value=168, value=10)
     attendance = st.slider("Attendance Rate (%)", 0, 100, 85)
 
 with col2:
-    parent_edu = st.selectbox("Parent Education Level", [0, 1, 2, 3]) # Categorical scale
-    internet = st.selectbox("Internet Access", ["No", "Yes"]) [cite: 2]
-    extracurricular = st.selectbox("Extracurricular Activities", ["No", "Yes"]) [cite: 2]
+    parent_edu = st.selectbox("Parent Education Level", [0, 1, 2, 3])
+    internet = st.selectbox("Internet Access", ["No", "Yes"])
+    extracurricular = st.selectbox("Extracurricular Activities", ["No", "Yes"])
     prev_score = st.number_input("Previous Score", min_value=0, max_value=100, value=75)
     final_score = st.number_input("Current Midterm/Final Score", min_value=0, max_value=100, value=75)
 
@@ -47,7 +47,6 @@ input_data = pd.DataFrame({
 if st.button("Predict Outcome"):
     prediction = model.predict(input_data)
     
-    # Remove any [cite: 2] text from this line
     if prediction[0] == "Yes":
         st.success("🎉 Prediction: The student is likely to SUCCEED.")
     else:
